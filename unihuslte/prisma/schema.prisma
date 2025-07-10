@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// University model for dropdown options
+model University {
+  id       String @id @default(cuid())
+  name     String @unique
+  state    String
+  country  String @default("Nigeria")
+  users    User[]
+
+  @@map("universities")
+}
+
+// User model for authentication and profile
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  password     String
+  university   String
+  universityId String?
+  otpToken     String?
+  otpExpiry    DateTime?
+  isVerified   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relationships
+  listings     Listing[]
+  universityRef University? @relation(fields: [universityId], references: [id])
+
+  @@map("users")
+}
+
+// Listing model for marketplace items
+model Listing {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  price       Float
+  category    String
+  tags        String   // JSON string of tags
+  imageUrl    String?
+  contact     String   // WhatsApp or email
+  status      String   @default("active") // active, sold, inactive
+  campus      String   // University campus
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("listings")
+}
